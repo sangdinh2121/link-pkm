@@ -77,3 +77,8 @@ h1{
     width: 70px;
     height: 70px;
 }
+.cell image{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
