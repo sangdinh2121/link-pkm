@@ -3,20 +3,15 @@ const COL = 16;
 const TYPES = 36;
 const COPIES = 4;
 
-// const game = document.getElementsByClassName("game")[0];
-// const gameScreen = document.getElementsByClassName("game-screen")[0];
-// const play = document.getElementsByClassName("play")[0];
-// const board = document.getElementsByClassName("board")[0];
-// const cells = document.getElementsByClassName("cell");
-// const boardIcon = [];
-// const pokemon = [];
-// const pokemonList = [];
-// let index =0;
+const game = document.getElementsByClassName("game")[0];
+const gameScreen = document.getElementsByClassName("game-screen")[0];
+const play = document.getElementsByClassName("play")[0];
+const board = document.getElementsByClassName("board")[0];
 
 //tạo danh sách
 function createList() {
     const list = [];
-    for (let type = 1; type < TYPES; type++) {
+    for (let type = 1; type <= TYPES; type++) {
         for (let i = 0; i < COPIES; i++) {
             list.push(type);
         }
@@ -34,5 +29,42 @@ function shuffle(list) {
     }
     return list;
 }
-console.log(createList());
-console.log(shuffle(createList()));
+//chuyển danh sách sang 2 chiều
+function createBoard(){
+    const list = shuffle(createList());
+    const matrix = [];
+    let k = 0;
+    for (let row = 0; row < ROW; row++) {
+        matrix[row] = [];
+        for (let col = 0; col < COL; col++) {
+            matrix[row][col] = list[k];
+            k++;
+        }
+    }
+    return matrix;
+}
+
+//vẽ bảng
+function drawBoard(matrix) {
+    for (let row = 0; row < ROW; row++) {
+        for (let col = 0; col < COL; col++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+
+            const img = document.createElement("img");
+            img.src = "assets/pkm-icon/" + matrix[row][col] + ".png";
+            img.alt = "";
+            cell.appendChild(img);
+            board.appendChild(cell);
+        }
+    }
+}
+
+//khởi tạo game
+function initGame() {
+    game.style.display = "none";
+    gameScreen.style.display = "flex";
+    const matrix = createBoard();
+    drawBoard(matrix);
+}
+play.addEventListener("click", initGame);
