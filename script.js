@@ -7,6 +7,8 @@ const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
 const play = document.getElementsByClassName("play")[0];
 const board = document.getElementsByClassName("board")[0];
+let matrix = [];
+let selected = null;
 
 //tạo danh sách
 function createList() {
@@ -50,6 +52,8 @@ function drawBoard(matrix) {
         for (let col = 0; col < COL; col++) {
             const cell = document.createElement("div");
             cell.classList.add("cell");
+            cell.dataset.row = row;
+            cell.dataset.col = col;
 
             const img = document.createElement("img");
             img.src = "assets/pkm-icon/" + matrix[row][col] + ".png";
@@ -60,11 +64,58 @@ function drawBoard(matrix) {
     }
 }
 
+function getCell(row, col) {
+    return board.children[row * COL + col];
+}
+
+function removeCell(row, col) {
+    matrix[row][col] = 0;
+    getCell(row, col).classList.add("empty");
+}
+
+function handleClick(row, col) {
+    //chưa chọn gì
+    if (selected === null) {
+        selected = {row, col};
+        getCell(row, col).classList.add("selected");
+        return;
+    }
+    //đã chọn 1
+    if (selected.row === row && selected.col === col) {
+        getCell(row, col).classList.remove("selected");
+        selected = null;
+        return;
+    }
+
+    //so sánh so với ô đã chọn
+    const first = selected;
+    getCell(first.row, first.col).classList.remove("selected");
+    if(matrix[first.row][first.col] === matrix[row][col]) {
+        removeCell(first.row, first.col);
+        removeCell(row, col);
+        selected = null;
+    } else {
+        selected = {row, col};
+        getCell(row, col).classList.add("selected");
+    }
+}
+
 //khởi tạo game
 function initGame() {
     game.style.display = "none";
     gameScreen.style.display = "flex";
-    const matrix = createBoard();
+    matrix = createBoard();
+    selected = null;
     drawBoard(matrix);
 }
 play.addEventListener("click", initGame);
+board.addEventListener("click", function (e) {
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+
+    if (matrix[row][col] === 0) return;
+    handleClick(row, col);
+});
