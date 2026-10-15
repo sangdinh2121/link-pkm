@@ -10,7 +10,7 @@ const board = document.getElementsByClassName("board")[0];
 let matrix = [];
 let selected = null;
 
-//tạo danh sách
+//List
 function createList() {
     const list = [];
     for (let type = 1; type <= TYPES; type++) {
@@ -21,7 +21,7 @@ function createList() {
     return list;
 }
 
-//Fisher-Yates
+//Apply Fisher-Yates to shuffle 
 function shuffle(list) {
     for (let i = list.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -31,7 +31,7 @@ function shuffle(list) {
     }
     return list;
 }
-//chuyển danh sách sang 2 chiều
+//Change to 2d array
 function createBoard(){
     const list = shuffle(createList());
     const matrix = [];
@@ -46,8 +46,8 @@ function createBoard(){
     return matrix;
 }
 
-//vẽ bảng
-function drawBoard(matrix) {
+//render
+function renderBoard(matrix) {
     for (let row = 0; row < ROW; row++) {
         for (let col = 0; col < COL; col++) {
             const cell = document.createElement("div");
@@ -74,20 +74,20 @@ function removeCell(row, col) {
 }
 
 function handleClick(row, col) {
-    //chưa chọn gì
+    //select nothing
     if (selected === null) {
         selected = {row, col};
         getCell(row, col).classList.add("selected");
         return;
     }
-    //đã chọn 1
+    //1 cell selected
     if (selected.row === row && selected.col === col) {
         getCell(row, col).classList.remove("selected");
         selected = null;
         return;
     }
 
-    //so sánh so với ô đã chọn
+    //compare with the one selected
     const first = selected;
     getCell(first.row, first.col).classList.remove("selected");
     if(matrix[first.row][first.col] === matrix[row][col]) {
@@ -100,13 +100,47 @@ function handleClick(row, col) {
     }
 }
 
-//khởi tạo game
+function isEmpty(r, c) {
+    if (r < 0 || r >= ROW || c < 0 || c >= COL) return true;
+    return matrix[r][c] === 0;
+}
+
+function canGoStraight(c1, c2, r1, r2) {
+    if(r1 === r2) {
+        const start = Math.min(c1, c2);
+        const end = Math.max(c1, c2);
+        for (let c = start + 1; c < end; c++) {
+            if(!isEmpty(r1, c)) return false;
+        }
+        return true;
+    }
+    if (c1 === c2) {
+        const start = Math.min(c1, c2);
+        const end = Math.max(c1, c2);
+        for (let r = start + 1; r < end; r++) {
+            if(!isEmpty(c1, r)) return false;
+        }
+        return true;
+    }
+    return false;
+}
+function canGoWith2Lines(r1, c1, r2, c2) {
+    if(isEmpty(r2, c1) && canGoStraight(r1, c1, r1, c2 ) && canGoStraight(r1, c2, r2, c2)) return true;
+    if(isEmpty(r2, c1) && canGoStraight(r1, c1, r2, c1) && canGoStraight(r2, c1, r2, c2)) return true;
+    return false;
+}
+
+function canGoWith3Lines(r1, c1, r2, c2) {
+    
+}
+
+//start gaem
 function initGame() {
     game.style.display = "none";
     gameScreen.style.display = "flex";
     matrix = createBoard();
     selected = null;
-    drawBoard(matrix);
+    renderBoard(matrix);
 }
 play.addEventListener("click", initGame);
 board.addEventListener("click", function (e) {
