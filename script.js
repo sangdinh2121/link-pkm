@@ -131,7 +131,13 @@ function canGoWith2Lines(r1, c1, r2, c2) {
 }
 
 function canGoWith3Lines(r1, c1, r2, c2) {
-    
+    for(let c = -1; c <= COL; c++) {
+        if(isEmpty(r1, c) && isEmpty(r2, c) && canGoStraight(r1, c1, r1, c) && canGoStraight(r1, c, r2, c) && canGoStraight(r2, c1, r2, c)) return true;
+    }
+    for(let r = -1; r <= ROW; r++) {
+        if(!isEmpty(r, c1) && isEmpty(r, c2) && canGoStraight(r1, c1, r, c1) && canGoStraight(r, c1, r, c2) && canGoStraight(r, c2, r2, c2)) return true;
+    }
+    return false;
 }
 
 //start gaem
