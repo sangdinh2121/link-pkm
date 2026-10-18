@@ -2,13 +2,25 @@ const ROW = 9;
 const COL = 16;
 const TYPES = 36;
 const COPIES = 4;
+const TIME_LIMIT = 360;
 
 const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
 const play = document.getElementsByClassName("play")[0];
 const board = document.getElementsByClassName("board")[0];
+const timeTxt = document.getElementById("time");
+const scoreTxt = document.getElementById("score");
+const overlay = document.getElementById("overlay");
+const message = document.getElementById("message");
+const finalScore = document.getElementById("final-score");
+const restartBtn = document.getElementById("restart");
+
 let matrix = [];
 let selected = null;
+let score = 0;
+let timeLeft = TIME_LIMIT;
+let timerId = null;
+let gameOver = false;
 
 //List
 function createList() {
@@ -48,6 +60,7 @@ function createBoard(){
 
 //render
 function renderBoard(matrix) {
+    board.innerHTML = "";
     for (let row = 0; row < ROW; row++) {
         for (let col = 0; col < COL; col++) {
             const cell = document.createElement("div");
@@ -94,10 +107,33 @@ function handleClick(row, col) {
         removeCell(first.row, first.col);
         removeCell(row, col);
         selected = null;
+        score += 10;
+        scoreTxt.textContent = score;
+        if(checkWin()) endGame("You win!");
     } else {
         selected = {row, col};
         getCell(row, col).classList.add("selected");
     }
+}
+
+//Time
+function startTimer() {
+    stopTimer();
+    timeLeft = TIME_LIMIT;
+    timeTxt.textContent = timeLeft;
+    timerId = setInterval(() => {
+        timeLeft--;
+        timeTxt.textContent = timeLeft;
+        if(timeLeft <= 0) {
+            stopTimer();
+            endGame("Time's up!");
+        }
+    }, 1000);
+    
+}
+
+function stopTimer() {
+    clearInterval(timerId);
 }
 
 function isEmpty(r, c) {
@@ -154,16 +190,41 @@ function canConnect(r1, c1, r2, c2) {
     return canGoStraight(r1, c1, r2, c2) || canGoWith2Lines(r1, c1, r2, c2) || canGoWith3Lines(r1, c1, r2, c2);
 }
 
-//start gaem
+function checkWin() {
+    for (let row = 0; row < ROW; row++) {
+        for (let col = 0; col < COL; col++) {
+            if (matrix[row][col] !== 0) return false;
+        }
+    }
+    return true;
+}
+
+function endGame(text) {
+    stopTimer();
+    gameOver = true;
+    message.textContent = text;
+    finalScore.textContent = "Score:" + score;
+    overlay.style.display = "flex";
+}
+
+//start game
 function initGame() {
     game.style.display = "none";
     gameScreen.style.display = "flex";
+    gameOver = false;
+    overlay.style.display = "none";
     matrix = createBoard();
     selected = null;
+    score = 0;
+    scoreTxt.textContent = score;
+    startTimer();
     renderBoard(matrix);
 }
 play.addEventListener("click", initGame);
 board.addEventListener("click", function (e) {
+    if(gameOver === true) {
+        return;
+    }
     const cell = e.target.closest(".cell");
     if (!cell) return;
 
@@ -173,4 +234,6 @@ board.addEventListener("click", function (e) {
     if (matrix[row][col] === 0) return;
     handleClick(row, col);
 });
+
+restartBtn.addEventListener("click", initGame);
 

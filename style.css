@@ -59,7 +59,7 @@ h1{
     gap: 50px;
 }
 .info span{
-    font-size: 4em;
+    font-size: 25px;
 }
 .board{
     display: grid;
@@ -86,3 +86,34 @@ h1{
 .cell.empty {
     visibility: hidden;
 }
+
+#overlay {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    inset: 0;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    gap: 20px;
+    color: white;
+}
+#message {
+    font-size: 4em;
+
+}
+
+#final-score{
+    font-size: 2em;
+}
+
+#restart{
+    width: 180px;
+    height: 60px;
+    font-size: 1.25em;
+    border-radius: 15px;
+    background-color: darkgray;
+    cursor: pointer;
+}
+
