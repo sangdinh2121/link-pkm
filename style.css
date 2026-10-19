@@ -116,4 +116,14 @@ h1{
     background-color: darkgray;
     cursor: pointer;
 }
+.cell.hint{
+    outline: 3px solid orange;
+}
 
+#hint{
+    height: 30px;
+    border-radius: 15px;
+    font-size: 1.25em;
+    background-color: darkgray;
+    cursor: pointer;
+}

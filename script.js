@@ -14,6 +14,7 @@ const overlay = document.getElementById("overlay");
 const message = document.getElementById("message");
 const finalScore = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart");
+const hintBtn = document.getElementById("hint-btn");
 
 let matrix = [];
 let selected = null;
@@ -207,6 +208,41 @@ function endGame(text) {
     overlay.style.display = "flex";
 }
 
+function connectPossible() {
+    for (let r1 = 0; r1 < ROW; r1++) {
+        for (let c1 = 0; c1 < COL; c1++) {
+            if(matrix[r1][c1] === 0) continue;
+            
+            for (let r2 = 0; r2 < ROW; r2++) {
+                for (let c2  = 0; c2 < COL; c2++) {
+                    if (matrix[r2][c2] === 0) continue;
+                    
+                    if(canConnect(r1, c1, r2, c2)){
+                        return {r1, c1, r2, c2};
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
+
+function showHint() {
+    if(gameOver) return;
+    const find = connectPossible();
+    if(find === null) return;
+    
+    const cell1 = getCell(find.r1, find.c1);
+    const cell2 = getCell(find.r2, find.c2);
+    cell1.classList.add("hint");
+    cell2.classList.add("hint");
+    setTimeout(() => {
+        cell1.classList.remove("hint");
+        cell2.classList.remove("hint");
+    }, 1000);
+    
+}
+
 //start game
 function initGame() {
     game.style.display = "none";
@@ -236,4 +272,5 @@ board.addEventListener("click", function (e) {
 });
 
 restartBtn.addEventListener("click", initGame);
+hintBtn.addEventListener("click", showHint);
 
