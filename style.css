@@ -120,7 +120,7 @@ h1{
     outline: 3px solid orange;
 }
 
-#hint{
+#shuffle, #hint{
     height: 30px;
     border-radius: 15px;
     font-size: 1.25em;

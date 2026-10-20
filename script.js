@@ -15,6 +15,7 @@ const message = document.getElementById("message");
 const finalScore = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart");
 const hintBtn = document.getElementById("hint-btn");
+const shuffleBtn = document.getElementById("shuffle");
 
 let matrix = [];
 let selected = null;
@@ -110,7 +111,9 @@ function handleClick(row, col) {
         selected = null;
         score += 10;
         scoreTxt.textContent = score;
-        if(checkWin()) endGame("You win!");
+        if(checkWin()){
+            endGame("You win!")
+        } else autoShuffle();
     } else {
         selected = {row, col};
         getCell(row, col).classList.add("selected");
@@ -243,6 +246,46 @@ function showHint() {
     
 }
 
+function shuffleCurrentBoard() {
+    if (gameOver) return;
+
+    //collect current cell
+    const values = [];
+    for (let row = 0; row < ROW; row++) {
+        for (let col = 0; col < COL; col++) {
+            if (matrix[row][col] !== 0) {
+                values.push(matrix[row][col]);
+            }
+        }
+    }
+    
+    shuffle(values);
+
+    // shuffle again
+    let k = 0;
+    for (let row = 0; row < ROW; row++) {
+        for (let col = 0; col < COL; col++) {
+            if (matrix[row][col] !== 0) {
+                matrix[row][col] = values[k];
+                getCell(row, col).querySelector("img").src = "assets/pkm-icon/" + values[k] + ".png";
+                k++;
+            }
+        }
+    }
+    
+    if (selected !== null) {
+        getCell(selected.row, selected.col).classList.remove("selected");
+        selected = null;
+    }
+}
+
+function autoShuffle() {
+    if(gameOver) return;
+    for(let i = 0; i < 50 && connectPossible() === null; i++) {
+        shuffleCurrentBoard();
+    }
+}
+
 //start game
 function initGame() {
     game.style.display = "none";
@@ -273,4 +316,5 @@ board.addEventListener("click", function (e) {
 
 restartBtn.addEventListener("click", initGame);
 hintBtn.addEventListener("click", showHint);
+shuffleBtn.addEventListener("click", shuffleCurrentBoard);
 
