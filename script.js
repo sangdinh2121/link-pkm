@@ -3,6 +3,8 @@ const COL = 16;
 const TYPES = 36;
 const COPIES = 4;
 const TIME_LIMIT = 360;
+const CELL_SIZE = 70;
+const BOARD_PADDING = 70;
 
 const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
@@ -16,6 +18,11 @@ const finalScore = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart");
 const hintBtn = document.getElementById("hint-btn");
 const shuffleBtn = document.getElementById("shuffle");
+const canvas = document.getElementById("path-canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = COL * CELL_SIZE + BOARD_PADDING * 2;
+canvas.height = ROW * CELL_SIZE + BOARD_PADDING * 2;
 
 let matrix = [];
 let selected = null;
@@ -105,15 +112,25 @@ function handleClick(row, col) {
     //compare with the one selected
     const first = selected;
     getCell(first.row, first.col).classList.remove("selected");
-    if(canConnect(first.row, first.col, row, col)) {
-        removeCell(first.row, first.col);
-        removeCell(row, col);
+    const path = canConnect(first.row, first.col, row, col);
+
+    if (path) {
+        drawPath(path);
         selected = null;
-        score += 10;
-        scoreTxt.textContent = score;
-        if(checkWin()){
-            endGame("You win!")
-        } else autoShuffle();
+
+        setTimeout(() => {
+            removeCell(first.row, first.col);
+            removeCell(row, col);
+
+            score += 10;
+            scoreTxt.textContent = score;
+
+            if (checkWin()) {
+                endGame("You win!");
+            } else {
+                autoShuffle();
+            }
+        }, 300);
     } else {
         selected = {row, col};
         getCell(row, col).classList.add("selected");
@@ -150,24 +167,30 @@ function canGoStraight(r1, c1, r2, c2) {
         const start = Math.min(c1, c2);
         const end = Math.max(c1, c2);
         for (let c = start + 1; c < end; c++) {
-            if(!isEmpty(r1, c)) return false;
+            if(!isEmpty(r1, c)) return null;
         }
-        return true;
+        return [[r1, c1], [r2, c2]];
     }
     if (c1 === c2) {
         const start = Math.min(r1, r2);
         const end = Math.max(r1, r2);
         for (let r = start + 1; r < end; r++) {
-            if(!isEmpty(r, c1)) return false;
+            if(!isEmpty(r, c1)) return null;
         }
-        return true;
+        return [[r1, c1], [r2, c2]];
     }
-    return false;
+    return null;
 }
 function canGoWith2Lines(r1, c1, r2, c2) {
-    if(isEmpty(r1, c2) && canGoStraight(r1, c1, r1, c2 ) && canGoStraight(r1, c2, r2, c2)) return true;
-    if(isEmpty(r2, c1) && canGoStraight(r1, c1, r2, c1) && canGoStraight(r2, c1, r2, c2)) return true;
-    return false;
+    if(isEmpty(r1, c2) &&
+        canGoStraight(r1, c1, r1, c2 ) &&
+        canGoStraight(r1, c2, r2, c2))
+        return [[r1,c1], [r1, c2], [r2, c2]];
+    if(isEmpty(r2, c1) &&
+        canGoStraight(r1, c1, r2, c1) &&
+        canGoStraight(r2, c1, r2, c2))
+        return [[r1, c1], [r2, c1], [r2, c2]];
+    return null;
 }
 
 function canGoWith3Lines(r1, c1, r2, c2) {
@@ -175,23 +198,52 @@ function canGoWith3Lines(r1, c1, r2, c2) {
         if(isEmpty(r1, c) && isEmpty(r2, c) && 
             canGoStraight(r1, c1, r1, c) && 
             canGoStraight(r1, c, r2, c) && 
-            canGoStraight(r2, c, r2, c2)) return true;
+            canGoStraight(r2, c, r2, c2))
+            return [[r1, c1], [r1, c], [r2, c], [r2, c2]];
     }
     for(let r = -1; r <= ROW; r++) {
         if(isEmpty(r, c1) && isEmpty(r, c2) && 
             canGoStraight(r1, c1, r, c1) && 
             canGoStraight(r, c1, r, c2) && 
-            canGoStraight(r, c2, r2, c2)) return true;
+            canGoStraight(r, c2, r2, c2))
+            return [[r1, c1], [r, c1], [r, c2], [r2, c2]];
     }
-    return false;
+    return null;
 }
 
 function canConnect(r1, c1, r2, c2) {
-    if(r1 === r2 && c1 === c2) return false;
+    if(r1 === r2 && c1 === c2) return null;
 
-    if(matrix[r1][c1] !== matrix[r2][c2]) return false;
+    if(matrix[r1][c1] !== matrix[r2][c2]) return null;
 
     return canGoStraight(r1, c1, r2, c2) || canGoWith2Lines(r1, c1, r2, c2) || canGoWith3Lines(r1, c1, r2, c2);
+}
+
+function drawPath(path) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "orange";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    path.forEach(([row, col], index) => {
+        const x = BOARD_PADDING + col * CELL_SIZE + CELL_SIZE / 2;
+        const y = BOARD_PADDING + row * CELL_SIZE + CELL_SIZE / 2;
+
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+
+    setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 300);
 }
 
 function checkWin() {

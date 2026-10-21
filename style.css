@@ -19,7 +19,7 @@ body{
 }
 
 h1{
-    color: white;
+    color: black;
     font-size: 5em;
     letter-spacing: 0.2em;
 
@@ -126,4 +126,25 @@ h1{
     font-size: 1.25em;
     background-color: darkgray;
     cursor: pointer;
+}
+.board-wrap {
+    position: relative;
+    width: 1260px;
+    height: 770px;
+    padding: 70px;
+}
+
+#path-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1260px;
+    height: 770px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.board {
+    position: relative;
+    z-index: 1;
 }
