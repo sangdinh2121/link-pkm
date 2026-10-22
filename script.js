@@ -5,6 +5,17 @@ const COPIES = 4;
 const TIME_LIMIT = 360;
 const CELL_SIZE = 70;
 const BOARD_PADDING = 70;
+const STONE = -1;
+const STONE_CELLS = [
+    [2, 3],
+    [2, 12],
+    [4, 6],
+    [4, 9],
+    [6, 3],
+    [6, 12],
+    [7, 6],
+    [7, 9]
+];
 
 const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
@@ -20,6 +31,7 @@ const hintBtn = document.getElementById("hint-btn");
 const shuffleBtn = document.getElementById("shuffle");
 const canvas = document.getElementById("path-canvas");
 const ctx = canvas.getContext("2d");
+const levelSelect = document.getElementById("level-select");
 
 canvas.width = COL * CELL_SIZE + BOARD_PADDING * 2;
 canvas.height = ROW * CELL_SIZE + BOARD_PADDING * 2;
@@ -30,6 +42,7 @@ let score = 0;
 let timeLeft = TIME_LIMIT;
 let timerId = null;
 let gameOver = false;
+let level = 1;
 
 //List
 function createList() {
@@ -76,6 +89,12 @@ function renderBoard(matrix) {
             cell.classList.add("cell");
             cell.dataset.row = row;
             cell.dataset.col = col;
+            if (matrix[row][col] === STONE) {
+                cell.classList.add("stone");
+                cell.textContent = "🪨";
+                board.appendChild(cell);
+                continue;
+            }
 
             const img = document.createElement("img");
             img.src = "assets/pkm-icon/" + matrix[row][col] + ".png";
@@ -126,8 +145,16 @@ function handleClick(row, col) {
             scoreTxt.textContent = score;
 
             if (checkWin()) {
-                endGame("You win!");
+                if (level < 3) {
+                    startLevel(level + 1);
+                } else {
+                    endGame("You win!");
+                }
             } else {
+                if (level === 2) {
+                    applyGravity();
+                }
+
                 autoShuffle();
             }
         }, 300);
@@ -214,7 +241,12 @@ function canGoWith3Lines(r1, c1, r2, c2) {
 function canConnect(r1, c1, r2, c2) {
     if(r1 === r2 && c1 === c2) return null;
 
-    if(matrix[r1][c1] !== matrix[r2][c2]) return null;
+    if (matrix[r1][c1] <= 0 || matrix[r2][c2] <= 0) {
+        return null;
+    }
+    if (matrix[r1][c1] !== matrix[r2][c2]) {
+        return null;
+    }
 
     return canGoStraight(r1, c1, r2, c2) || canGoWith2Lines(r1, c1, r2, c2) || canGoWith3Lines(r1, c1, r2, c2);
 }
@@ -249,7 +281,7 @@ function drawPath(path) {
 function checkWin() {
     for (let row = 0; row < ROW; row++) {
         for (let col = 0; col < COL; col++) {
-            if (matrix[row][col] !== 0) return false;
+            if (matrix[row][col] > 0) return false;
         }
     }
     return true;
@@ -266,11 +298,11 @@ function endGame(text) {
 function connectPossible() {
     for (let r1 = 0; r1 < ROW; r1++) {
         for (let c1 = 0; c1 < COL; c1++) {
-            if(matrix[r1][c1] === 0) continue;
+            if (matrix[r1][c1] <= 0) continue;
             
             for (let r2 = 0; r2 < ROW; r2++) {
                 for (let c2  = 0; c2 < COL; c2++) {
-                    if (matrix[r2][c2] === 0) continue;
+                    if (matrix[r2][c2] <= 0) continue;
                     
                     if(canConnect(r1, c1, r2, c2)){
                         return {r1, c1, r2, c2};
@@ -338,18 +370,71 @@ function autoShuffle() {
     }
 }
 
+//level game
+function startLevel(newLevel) {
+    level = newLevel;
+    levelSelect.value = level;
+
+    if (level === 3) {
+        matrix = createLevel3Board();
+    } else {
+        matrix = createBoard();
+    }
+    selected = null;
+
+    renderBoard(matrix);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+//lv2
+function applyGravity() {
+    for (let col = 0; col < COL; col++) {
+        const values = [];
+        for (let row = ROW - 1; row >= 0; row--) {
+            if(matrix[row][col] !== 0) {
+                values.push(matrix[row][col]);
+            }
+        }
+        for (let row = ROW - 1; row >= 0; row--) {
+            matrix[row][col] = values.shift() || 0;
+        }
+    }
+
+    renderBoard(matrix);
+}
+
+//lv3
+function createLevel3Board() {
+    const list = shuffle(createList().slice(0, ROW * COL - STONE_CELLS.length));
+    const newMatrix = [];
+    let index = 0;
+    
+    for (let row = 0; row < ROW; row++) {
+        newMatrix[row] = [];
+        for (let col = 0; col < COL; col++) {
+            const isStone = STONE_CELLS.some(([r, c]) => r === row && c === col);
+            if (isStone) {
+                newMatrix[row][col] = STONE;
+            } else {
+                newMatrix[row][col] = list[index];
+                index++;
+            }
+        }
+    }
+    return newMatrix;
+}
+
 //start game
 function initGame() {
     game.style.display = "none";
     gameScreen.style.display = "flex";
     gameOver = false;
     overlay.style.display = "none";
-    matrix = createBoard();
-    selected = null;
     score = 0;
     scoreTxt.textContent = score;
     startTimer();
-    renderBoard(matrix);
+    startLevel(Number(levelSelect.value));
 }
 play.addEventListener("click", initGame);
 board.addEventListener("click", function (e) {
@@ -362,11 +447,22 @@ board.addEventListener("click", function (e) {
     const row = Number(cell.dataset.row);
     const col = Number(cell.dataset.col);
 
-    if (matrix[row][col] === 0) return;
+    if (matrix[row][col] <= 0) return;
     handleClick(row, col);
 });
 
 restartBtn.addEventListener("click", initGame);
 hintBtn.addEventListener("click", showHint);
 shuffleBtn.addEventListener("click", shuffleCurrentBoard);
+levelSelect.addEventListener("change", function () {
+    const newLevel = Number(levelSelect.value);
+    
+    if (gameOver) {
+        gameOver = false;
+        overlay.style.display = "none";
+        startTimer();
+    }
+
+    startLevel(newLevel);
+});
 
