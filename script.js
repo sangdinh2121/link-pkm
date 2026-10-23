@@ -151,7 +151,7 @@ function handleClick(row, col) {
             scoreTxt.textContent = score;
 
             if (checkWin()) {
-                if (level < 3) {
+                if (level < 6) {
                     startLevel(level + 1);
                 } else {
                     endGame("You win!");
@@ -159,6 +159,10 @@ function handleClick(row, col) {
             } else {
                 if (level === 2) {
                     applyGravity();
+                }
+
+                if (level === 5) {
+                    swapRandom();
                 }
 
                 autoShuffle();
@@ -504,6 +508,45 @@ function unfreezeNearPath(path) {
             }
         }
     }
+}
+
+//lv5
+function swapRandom() {
+    const positions = [];
+    for (let row = 0; row < ROW; row++) {
+        for (let col = 0; col < COL; col++) {
+            if(matrix[row][col] > 0) {
+                positions.push({row, col});
+            }
+        }
+    }
+    const pairs = [];
+    for (let i = 0; i < positions.length; i++) {
+        for (let j = i + 1; j < positions.length; j++) {
+            const a = positions[i];
+            const b = positions[j];
+            if( matrix[a.row][a.col] !== matrix[b.row][b.col] ) {
+                pairs.push([a, b]);
+            }
+        }
+    }
+    if (pairs.length === 0) return;
+
+    //randomly choose two animals
+    const index = Math.floor(Math.random() * pairs.length);
+    const [a, b] = pairs[index];
+
+    //swap their values in the matrix
+    const temp = matrix[a.row][a.col];
+    matrix[a.row][a.col] = matrix[b.row][b.col];
+    matrix[b.row][b.col] = temp;
+    
+    //update img
+    getCell(a.row, a.col).querySelector("img").src =
+        "assets/pkm-icon/" + matrix[a.row][a.col] + ".png";
+
+    getCell(b.row, b.col).querySelector("img").src =
+        "assets/pkm-icon/" + matrix[b.row][b.col] + ".png";
 }
 
 //start game
