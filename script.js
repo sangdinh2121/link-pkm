@@ -45,6 +45,7 @@ let timerId = null;
 let gameOver = false;
 let level = 1;
 let frozen = [];
+let hiddenCells = new Set();
 
 //List
 function createList() {
@@ -97,8 +98,21 @@ function renderBoard(matrix) {
                 board.appendChild(cell);
                 continue;
             }
+            if (matrix[row][col] === 0) {
+                cell.classList.add("empty");
+                board.appendChild(cell);
+                continue;
+            }
             if(frozen[row][col]) {
                 cell.classList.add("frozen");
+            }
+            if (level === 6 && isHidden(row, col)) {
+                const cover = document.createElement("div");
+
+                cover.className = "hidden-cover";
+                cover.textContent = "?";
+
+                cell.appendChild(cover);
             }
 
             const img = document.createElement("img");
@@ -120,6 +134,30 @@ function removeCell(row, col) {
 }
 
 function handleClick(row, col) {
+    if (level === 6 && isHidden(row, col)) {
+        hiddenCells.delete(cellKey(row, col));
+
+        const cell = getCell(row, col);
+        const cover = cell.querySelector(".hidden-cover");
+
+        if (cover) {
+            cover.remove();
+        }
+
+        setTimeout(() => {
+            if (level !== 6 || matrix[row][col] <= 0) return;
+
+            if (selected?.row === row && selected?.col === col) return;
+
+            hiddenCells.add(cellKey(row, col));
+
+            const cover = document.createElement("div");
+            cover.className = "hidden-cover";
+            cover.textContent = "?";
+
+            getCell(row, col).appendChild(cover);
+        }, 5000);
+    }
     //select nothing
     if (selected === null) {
         selected = {row, col};
@@ -396,6 +434,8 @@ function startLevel(newLevel) {
     }
     createFrozen();
 
+    createHiddenCells();
+
     selected = null;
     renderBoard(matrix);
     
@@ -547,6 +587,48 @@ function swapRandom() {
 
     getCell(b.row, b.col).querySelector("img").src =
         "assets/pkm-icon/" + matrix[b.row][b.col] + ".png";
+}
+
+//lv6
+function cellKey(row, col) {
+    return `${row}-${col}`;
+}
+
+function isHidden(row, col) {
+    return hiddenCells.has(cellKey(row, col));
+}
+
+function createHiddenCells() {
+    hiddenCells.clear();
+
+    if (level !== 6) return;
+
+    const positions = [];
+
+    for (let r = 0; r < ROW; r++) {
+        for (let c = 0; c < COL; c++) {
+            //only hide cell > 0
+            if (matrix[r][c] > 0) {
+                positions.push({ r, c });
+            }
+        }
+    }
+
+    //random 30-40% hide
+    const ratio = 0.3 + Math.random() * 0.1;
+    const hiddenCount = Math.floor(positions.length * ratio);
+
+    //shuffle list position
+    for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] =
+            [positions[j], positions[i]];
+    }
+
+    for (let i = 0; i < hiddenCount; i++) {
+        const { r, c } = positions[i];
+        hiddenCells.add(cellKey(r, c));
+    }
 }
 
 //start game

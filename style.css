@@ -167,3 +167,19 @@ h1{
     font-size: 42px;
     background: rgba(180, 235, 255, 0.55);
 }
+
+.hidden-cover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #34495e;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #ecf0f1;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 2;
+}
