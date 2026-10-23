@@ -16,6 +16,7 @@ const STONE_CELLS = [
     [7, 6],
     [7, 9]
 ];
+const FROZEN_COUNT = 14;
 
 const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
@@ -43,6 +44,7 @@ let timeLeft = TIME_LIMIT;
 let timerId = null;
 let gameOver = false;
 let level = 1;
+let frozen = [];
 
 //List
 function createList() {
@@ -95,6 +97,9 @@ function renderBoard(matrix) {
                 board.appendChild(cell);
                 continue;
             }
+            if(frozen[row][col]) {
+                cell.classList.add("frozen");
+            }
 
             const img = document.createElement("img");
             img.src = "assets/pkm-icon/" + matrix[row][col] + ".png";
@@ -138,6 +143,7 @@ function handleClick(row, col) {
         selected = null;
 
         setTimeout(() => {
+            unfreezeNearPath(path);
             removeCell(first.row, first.col);
             removeCell(row, col);
 
@@ -186,6 +192,8 @@ function stopTimer() {
 
 function isEmpty(r, c) {
     if (r < 0 || r >= ROW || c < 0 || c >= COL) return true;
+
+    if(frozen[r][c]) return false;
     return matrix[r][c] === 0;
 }
 
@@ -239,6 +247,7 @@ function canGoWith3Lines(r1, c1, r2, c2) {
 }
 
 function canConnect(r1, c1, r2, c2) {
+    if(frozen[r1][c1] || frozen[r2][c2]) return null;
     if(r1 === r2 && c1 === c2) return null;
 
     if (matrix[r1][c1] <= 0 || matrix[r2][c2] <= 0) {
@@ -298,11 +307,11 @@ function endGame(text) {
 function connectPossible() {
     for (let r1 = 0; r1 < ROW; r1++) {
         for (let c1 = 0; c1 < COL; c1++) {
-            if (matrix[r1][c1] <= 0) continue;
+            if (matrix[r1][c1] <= 0 || frozen[r1][c1]) continue;
             
             for (let r2 = 0; r2 < ROW; r2++) {
                 for (let c2  = 0; c2 < COL; c2++) {
-                    if (matrix[r2][c2] <= 0) continue;
+                    if (matrix[r2][c2] <= 0 || frozen[r2][c2]) continue;
                     
                     if(canConnect(r1, c1, r2, c2)){
                         return {r1, c1, r2, c2};
@@ -380,8 +389,9 @@ function startLevel(newLevel) {
     } else {
         matrix = createBoard();
     }
-    selected = null;
+    createFrozen();
 
+    selected = null;
     renderBoard(matrix);
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -425,6 +435,69 @@ function createLevel3Board() {
     return newMatrix;
 }
 
+//lv4
+function createFrozen() {
+    frozen = [];
+    for (let row = 0; row < ROW; row++) {
+        frozen[row] = [];
+        for (let col = 0; col < COL; col++) {
+            frozen[row][col] = false;
+        }
+    }
+    if (level === 4) {
+        let count = 0;
+        while (count < FROZEN_COUNT) {
+            const row = Math.floor(Math.random() * ROW);
+            const col = Math.floor(Math.random() * COL);
+            if(frozen[row][col] === false) {
+                frozen[row][col] = true;
+                count++;
+            }
+        }
+    }
+}
+
+function unfreeze(row, col) {
+    if(row < 0 || row >= ROW || col < 0 || col >= COL) return;
+
+    if(frozen[row][col]) {
+        frozen[row][col] = false;
+        getCell(row, col).classList.remove("frozen");
+    }
+}
+
+function unfreezeNearCell(row, col) {
+    unfreeze(row - 1, col);
+    unfreeze(row + 1, col);
+    unfreeze(row, col - 1);
+    unfreeze(row, col + 1);
+}
+
+function unfreezeNearPath(path) {
+    for (let i = 0; i < path.length - 1; i++) {
+        const [r1, c1] = path[i];
+        const [r2, c2] = path[i + 1];
+        
+        if (r1 === r2) {
+            const start = Math.min(c1, c2);
+            const end = Math.max(c1, c2);
+
+            for (let col = start; col <= end; col++) {
+                unfreezeNearCell(r1, col);
+            }
+        }
+        
+        if (c1 === c2) {
+            const start = Math.min(r1, r2);
+            const end = Math.max(r1, r2);
+
+            for (let row = start; row <= end; row++) {
+                unfreezeNearCell(row, c1);
+            }
+        }
+    }
+}
+
 //start game
 function initGame() {
     game.style.display = "none";
@@ -447,7 +520,7 @@ board.addEventListener("click", function (e) {
     const row = Number(cell.dataset.row);
     const col = Number(cell.dataset.col);
 
-    if (matrix[row][col] <= 0) return;
+    if (matrix[row][col] <= 0 || frozen[row][col]) return;
     handleClick(row, col);
 });
 
