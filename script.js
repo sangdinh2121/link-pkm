@@ -346,7 +346,7 @@ function shuffleCurrentBoard() {
     const values = [];
     for (let row = 0; row < ROW; row++) {
         for (let col = 0; col < COL; col++) {
-            if (matrix[row][col] !== 0) {
+            if (matrix[row][col] > 0) {
                 values.push(matrix[row][col]);
             }
         }
@@ -358,9 +358,10 @@ function shuffleCurrentBoard() {
     let k = 0;
     for (let row = 0; row < ROW; row++) {
         for (let col = 0; col < COL; col++) {
-            if (matrix[row][col] !== 0) {
+            if (matrix[row][col] > 0) {
                 matrix[row][col] = values[k];
-                getCell(row, col).querySelector("img").src = "assets/pkm-icon/" + values[k] + ".png";
+                const img = getCell(row, col).querySelector("img");
+                img.src = "assets/pkm-icon/" + values[k] + ".png";
                 k++;
             }
         }
@@ -416,7 +417,14 @@ function applyGravity() {
 
 //lv3
 function createLevel3Board() {
-    const list = shuffle(createList().slice(0, ROW * COL - STONE_CELLS.length));
+    const list = [];
+    for (let type = 1; type <= 34; type++) {
+        for (let i = 0; i < 4; i++) {
+            list.push(type);
+        }
+    }
+    shuffle(list);
+    
     const newMatrix = [];
     let index = 0;
     
