@@ -29,7 +29,9 @@ const message = document.getElementById("message");
 const finalScore = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart");
 const hintBtn = document.getElementById("hint-btn");
-const shuffleBtn = document.getElementById("shuffle");
+const pauseBtn = document.getElementById("pause-btn");
+const pauseOverlay = document.getElementById("pause-overlay");
+const resumeBtn = document.getElementById("resume-btn");
 const canvas = document.getElementById("path-canvas");
 const ctx = canvas.getContext("2d");
 const levelSelect = document.getElementById("level-select");
@@ -46,6 +48,7 @@ let gameOver = false;
 let level = 1;
 let frozen = [];
 let hiddenCells = new Set();
+let paused = false;
 
 //List
 function createList() {
@@ -213,19 +216,40 @@ function handleClick(row, col) {
 }
 
 //Time
-function startTimer() {
-    stopTimer();
-    timeLeft = TIME_LIMIT;
-    timeTxt.textContent = timeLeft;
+function runTimer() {
     timerId = setInterval(() => {
         timeLeft--;
         timeTxt.textContent = timeLeft;
-        if(timeLeft <= 0) {
+        if (timeLeft <= 0) {
             stopTimer();
             endGame("Time's up!");
         }
     }, 1000);
-    
+}
+
+function startTimer() {
+    stopTimer();
+    timeLeft = TIME_LIMIT;
+    timeTxt.textContent = timeLeft;
+    runTimer();
+}
+
+function pauseGame() {
+    if (gameOver || paused) return;
+    paused = true;
+    stopTimer();
+    pauseOverlay.style.display = "flex";
+}
+
+function resumeGame() {
+    if (!paused) return;
+    paused = false;
+    pauseOverlay.style.display = "none";
+    runTimer();
+}
+function resetPause() {
+    paused = false;
+    pauseOverlay.style.display = "none";
 }
 
 function stopTimer() {
@@ -339,6 +363,7 @@ function checkWin() {
 }
 
 function endGame(text) {
+    resetPause();
     stopTimer();
     gameOver = true;
     message.textContent = text;
@@ -366,7 +391,7 @@ function connectPossible() {
 }
 
 function showHint() {
-    if(gameOver) return;
+    if(gameOver || paused) return;
     const find = connectPossible();
     if(find === null) return;
     
@@ -424,6 +449,7 @@ function autoShuffle() {
 
 //level game
 function startLevel(newLevel) {
+    resetPause();
     level = newLevel;
     levelSelect.value = level;
     startTimer();
@@ -644,7 +670,7 @@ function initGame() {
 }
 play.addEventListener("click", initGame);
 board.addEventListener("click", function (e) {
-    if(gameOver === true) {
+    if(gameOver === true || paused) {
         return;
     }
     const cell = e.target.closest(".cell");
@@ -659,7 +685,8 @@ board.addEventListener("click", function (e) {
 
 restartBtn.addEventListener("click", initGame);
 hintBtn.addEventListener("click", showHint);
-shuffleBtn.addEventListener("click", shuffleCurrentBoard);
+pauseBtn.addEventListener("click", pauseGame);
+resumeBtn.addEventListener("click", resumeGame);
 levelSelect.addEventListener("change", function () {
     const newLevel = Number(levelSelect.value);
     

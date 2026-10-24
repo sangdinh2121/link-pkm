@@ -110,7 +110,7 @@ h1{
     font-size: 2em;
 }
 
-#restart{
+#restart, #resume-btn{
     width: 180px;
     height: 60px;
     font-size: 1.25em;
@@ -122,7 +122,7 @@ h1{
     outline: 3px solid orange;
 }
 
-#shuffle, #hint-btn{
+#pause-btn, #hint-btn{
     height: 30px;
     border-radius: 15px;
     font-size: 1.25em;
@@ -132,7 +132,7 @@ h1{
 #hint-btn {
     background: linear-gradient(135deg, #2bb3c0, #4a74d9);
 }
-#shuffle {
+#pause-btn {
     background: linear-gradient(135deg, #8e6bd8, #d86bb0);
 }
 .board-wrap {
@@ -199,11 +199,26 @@ h1{
     background: linear-gradient(135deg, #11998e, #38ef7d);
     cursor: pointer;
 }
-.play button:hover, #hint-btn:hover, #shuffle:hover, #level-select:hover {
+.play button:hover, #hint-btn:hover, #pause-btn:hover, #level-select:hover {
     filter: brightness(1.1);
 }
 #level-select option {
     background: #fffaf0;
     color: #4a3b2a;
     font-size: 1rem;
+}
+#pause-overlay {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    inset: 0;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.92);
+    z-index: 10;
+    gap: 20px;
+    color: white;
+}
+#pause-text {
+    font-size: 4em;
 }
