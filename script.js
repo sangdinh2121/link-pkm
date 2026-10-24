@@ -16,7 +16,7 @@ const STONE_CELLS = [
     [7, 6],
     [7, 9]
 ];
-const FROZEN_COUNT = 14;
+const FROZEN_COUNT = 24;
 
 const game = document.getElementsByClassName("game")[0];
 const gameScreen = document.getElementsByClassName("game-screen")[0];
@@ -426,6 +426,7 @@ function autoShuffle() {
 function startLevel(newLevel) {
     level = newLevel;
     levelSelect.value = level;
+    startTimer();
 
     if (level === 3) {
         matrix = createLevel3Board();
@@ -639,7 +640,6 @@ function initGame() {
     overlay.style.display = "none";
     score = 0;
     scoreTxt.textContent = score;
-    startTimer();
     startLevel(Number(levelSelect.value));
 }
 play.addEventListener("click", initGame);
@@ -666,7 +666,6 @@ levelSelect.addEventListener("change", function () {
     if (gameOver) {
         gameOver = false;
         overlay.style.display = "none";
-        startTimer();
     }
 
     startLevel(newLevel);
